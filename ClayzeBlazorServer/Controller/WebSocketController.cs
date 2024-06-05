@@ -23,7 +23,7 @@ public class WebSocketController
 			if (receiveResult.EndOfMessage)
 			{
 				var data = Buffer.Slice(0, receiveResult.Count).ToArray();
-				await OnReceieve(data);
+				await OnReceive(data);
 			}
 
 			if (receiveResult.MessageType == WebSocketMessageType.Close)
@@ -33,7 +33,7 @@ public class WebSocketController
 		}
 	}
 
-	protected virtual async Task OnReceieve(byte[] data)
+	protected virtual async Task OnReceive(byte[] data)
 	{
 		Console.WriteLine("Received." + data.Length);
 	}

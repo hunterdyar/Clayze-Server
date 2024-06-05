@@ -15,7 +15,7 @@ public class SocketClient : WebSocketController
 		_testDataStore.OnItemAdded += OnItemAddedFromOtherClient;
 	}
 
-	private async void OnItemAddedFromOtherClient(int itemID, byte[] data, string client)
+	private async void OnItemAddedFromOtherClient(uint itemID, byte[] data, string client)
 	{
 		//we added this! ignore!
 		if (client == ID)
@@ -31,7 +31,7 @@ public class SocketClient : WebSocketController
 		await Send(packet);
 	}
 
-	protected override async Task OnReceieve(byte[] data)
+	protected override async Task OnReceive(byte[] data)
 	{
 		if (data.Length == 0)
 		{
@@ -58,6 +58,7 @@ public class SocketClient : WebSocketController
 				// var id = BitConverter.ToInt32([[]])
 				break;
 			case MessageType.GetAll:
+				//asked for all data. reply with all data.
 				await SendAllData();
 				break;
 		}
@@ -66,7 +67,15 @@ public class SocketClient : WebSocketController
 
 	private async Task SendAllData()
 	{
-		// var allDataPacket = DataStoreHub.Data;
-		// Send(allDataPacket);
+		var allDataSet = _testDataStore.GetAllRawData();
+		List<byte> allData = new List<byte>();
+		allData.Add((byte)MessageType.GetAll);
+		foreach (var item in allDataSet)
+		{
+			allData.AddRange(BitConverter.GetBytes(item.Item1));
+			allData.AddRange(item.Item2);
+		}
+
+		await Send(allData.ToArray());
 	}
 }
