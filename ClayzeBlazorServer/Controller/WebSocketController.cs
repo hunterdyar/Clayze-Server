@@ -26,7 +26,6 @@ public class WebSocketController
 				await OnReceieve(data);
 			}
 		}
-		
 	}
 
 	protected virtual async Task OnReceieve(byte[] data)

@@ -25,7 +25,7 @@ app.Map("/ws1", async context =>
 		var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 		SocketClient controller = new SocketClient(webSocket);
 		await controller.Handle();
-		Console.WriteLine($"websocket state: {webSocket.State}");
+		
 	}
 	else
 	{

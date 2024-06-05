@@ -1,7 +1,52 @@
 ﻿@page "/"
+@using ClayzeBlazorServer.Datashare
+@using ClayzeBlazorServer.Models
+@attribute [StreamRendering]
 
-<PageTitle>Clayze Server</PageTitle>
+<PageTitle>Clayze Server Data</PageTitle>
 
-<h1>Hello!</h1>
+<h1>Clayze Server</h1>
+<p>Connnection URL: <em>wss://clayzeserverapp.azurewebsites.net:443/ws1</em></p>
+<p>This is the current data held on the server. It does nto refresh automatically. Nothing is saved. All data is lost when the server crashes or restarts.</p>
 
-Hello from the Clayze Server.
+@if (dataStore == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Item id</th>
+            <th>Message (utf8)</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var itemPair in dataStore.GetAllRawData())
+        {
+            <tr>
+                <td>@itemPair.Item1</td>
+                <td>@itemPair.Item2.PrettyPrint()</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private ListDataStore<byte[]> dataStore;
+
+    protected override async Task OnInitializedAsync()
+    {
+        DataStoreHub.TryGetDataStore("test", out dataStore);
+        dataStore.OnItemAdded += OnItemAdded;
+    }
+
+    private void OnItemAdded(int arg1, byte[] arg2, string arg3)
+    {
+    }
+
+}
