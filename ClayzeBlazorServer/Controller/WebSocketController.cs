@@ -25,6 +25,11 @@ public class WebSocketController
 				var data = Buffer.Slice(0, receiveResult.Count).ToArray();
 				await OnReceieve(data);
 			}
+
+			if (receiveResult.MessageType == WebSocketMessageType.Close)
+			{
+				await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure,"client requested",CancellationToken.None);
+			}
 		}
 	}
 
@@ -36,6 +41,10 @@ public class WebSocketController
 	public async Task Send(byte[] packet)
 	{
 		var data = new ArraySegment<byte>(packet);
+		if (_webSocket.State != WebSocketState.Open)
+		{
+			return;
+		}
 		await _webSocket.SendAsync(data, WebSocketMessageType.Binary, true,CancellationToken.None);
 	}
 }
