@@ -1,4 +1,4 @@
-﻿namespace ClayzeServer.Datashare;
+﻿namespace ClayzeBlazorServer.Datashare;
 
 
 public static class DataStoreHub

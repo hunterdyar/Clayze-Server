@@ -1,32 +1,40 @@
-﻿namespace ClayzeBlazorServer.Models;
+﻿using System.Text;
+using ClayzeBlazorServer.Models;
 
-public static class MessageUtilityExtensions
+namespace ClayzeBlazorServer.Models;
+
+public static class MessageExtensions
 {
-	static MessageType GetMessageType(this byte[] )
-	static string PrettyPrint(byte[] message)
+	public static MessageType GetMessageType(this byte[] message)
 	{
-		switch (messageType)
+		return (MessageType)message[0];
+	}
+	
+	public static string PrettyPrint(this byte[] message)
+	{
+		return System.Text.Encoding.UTF8.GetString(message);
+		StringBuilder sb = new StringBuilder();
+		var mt = message.GetMessageType();
+		switch (mt)
 		{
 			case MessageType.Echo:
-				await Send(data);
+				sb.Append("Echo");
 				break;
 			case MessageType.Add:
-				//remove instruction byte and add.
-				var message = new byte[data.Length - 1];
-				Array.ConstrainedCopy(data, 1, message, 0, data.Length - 1);
-				var id = _testDataStore.AddItem(message, ID);
-				var packet = new byte[5];
-				BitConverter.GetBytes(id).CopyTo(packet, 1);
-				packet[0] = (byte)MessageType.IDReply;
-				await Send(packet);
+				sb.Append("Add: ");
+				var ar = new ArraySegment<byte>(message);
+				var s = ar.Slice(5).ToArray();
+				sb.Append(System.Text.Encoding.UTF8.GetString(s));
 				break;
 			case MessageType.Remove:
-				// var id = BitConverter.ToInt32([[]])
+				sb.Append("Remove");
 				break;
 			case MessageType.GetAll:
-				await SendAllData();
+				sb.Append("Get All");
 				break;
 		}
+
+		return sb.ToString();
 	}
 	
 }

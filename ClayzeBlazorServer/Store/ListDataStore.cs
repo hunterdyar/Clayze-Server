@@ -1,4 +1,4 @@
-﻿namespace ClayzeServer.Datashare;
+﻿namespace ClayzeBlazorServer.Datashare;
 
 public class ListDataStore<T> : IDataStore
 {

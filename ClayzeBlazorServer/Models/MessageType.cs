@@ -1,4 +1,4 @@
-﻿namespace ClayzeServer.Models;
+﻿namespace ClayzeBlazorServer.Models;
 
 public enum MessageType
 {
