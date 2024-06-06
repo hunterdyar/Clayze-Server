@@ -7,4 +7,5 @@ public enum MessageType
 	Remove = 2,
 	GetAll = 3,
 	IDReply = 4,
+	Clear = 5
 }

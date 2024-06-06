@@ -8,12 +8,22 @@ public class SocketClient : WebSocketController
 {
 	//this datastore needs to get initialized in program and a reference injected to here.
 	private ListDataStore<byte[]> _testDataStore;
-	
-	
+
 	public SocketClient(WebSocket socket, ListDataStore<byte[]> datastore) : base(socket)
 	{
 		_testDataStore = datastore;
 		_testDataStore.OnItemAdded += OnItemAddedFromOtherClient;
+		_testDataStore.OnClear += OnClear;
+	}
+
+	private async void OnClear(string client)
+	{
+		if (client == ID)
+		{
+			return;
+		}
+
+		await Send(new []{(byte)MessageType.Clear});
 	}
 
 	private async void OnItemAddedFromOtherClient(uint itemID, byte[] data, string client)
@@ -31,7 +41,7 @@ public class SocketClient : WebSocketController
 		data.CopyTo(packet, 5); //copy the rest.
 		await Send(packet);
 	}
-
+	
 	protected override async Task OnReceive(byte[] data)
 	{
 		if (data.Length == 0)
@@ -61,6 +71,9 @@ public class SocketClient : WebSocketController
 			case MessageType.GetAll:
 				//asked for all data. reply with all data.
 				await SendAllData();
+				break;
+			case MessageType.Clear:
+				_testDataStore.Clear(ID);
 				break;
 		}
 	}
