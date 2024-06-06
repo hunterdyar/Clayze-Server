@@ -8,10 +8,11 @@ public class SocketClient : WebSocketController
 {
 	//this datastore needs to get initialized in program and a reference injected to here.
 	private ListDataStore<byte[]> _testDataStore;
-
-	public SocketClient(WebSocket socket) : base(socket)
+	
+	
+	public SocketClient(WebSocket socket, ListDataStore<byte[]> datastore) : base(socket)
 	{
-		DataStoreHub.TryGetDataStore("test", out _testDataStore);
+		_testDataStore = datastore;
 		_testDataStore.OnItemAdded += OnItemAddedFromOtherClient;
 	}
 

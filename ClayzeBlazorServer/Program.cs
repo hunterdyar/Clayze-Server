@@ -8,30 +8,41 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
 	.AddInteractiveServerComponents();
-
+string[] stores = new[] { "test", "ws1" };
 var app = builder.Build();
 
-DataStoreHub.CreateDataStore("test",new ListDataStore<byte[]>());
 var webSocketOptions = new WebSocketOptions
 {
 	KeepAliveInterval = TimeSpan.FromSeconds(30)
 };
 
 app.UseWebSockets(webSocketOptions);
-app.Map("/ws1", async context =>
+
+//Create a datastore and an endpoint for our list.
+foreach (string storeID in stores)
 {
-	if (context.WebSockets.IsWebSocketRequest)
+	DataStoreHub.CreateDataStore(storeID, new ListDataStore<byte[]>());
+
+	app.Map(storeID, async context =>
 	{
-		var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-		SocketClient controller = new SocketClient(webSocket);
-		await controller.Handle();
-		
-	}
-	else
-	{
-		context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-	}
-});
+		if (context.WebSockets.IsWebSocketRequest)
+		{
+			var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+			DataStoreHub.TryGetDataStore(storeID, out ListDataStore<byte[]> store);
+			SocketClient controller = new SocketClient(webSocket, store);
+			await controller.Handle();
+
+		}
+		else
+		{
+			context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+		}
+	});
+
+}
+
+
+//
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
