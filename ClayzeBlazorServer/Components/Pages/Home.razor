@@ -30,6 +30,7 @@ else
         @foreach (var itemPair in dataStore.GetAllRawData())
         {
             <tr>
+                <td><button @onclick="@(e=>OnRemoveItem(@itemPair.Item1))">x</button></td>
                 <td>@itemPair.Item1</td>
                 <td>@itemPair.Item2.PrettyPrint()</td>
             </tr>
@@ -56,6 +57,12 @@ else
     {
         //all webpages can have the same ID, because they always update on any change.
         dataStore.Clear("webpage");
+    }
+
+    private async Task OnRemoveItem(uint id)
+    {
+    //all webpages can have the same ID, because they always update on any change.
+        dataStore.RemoveItem(id,"webpage");
     }
 
 }

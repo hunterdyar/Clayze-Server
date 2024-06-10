@@ -4,6 +4,7 @@ public class ListDataStore<T> : IDataStore
 {
 	//Every item in the list gets a unique ID. It's not the index, it's independent of removal/operations.
 	public Action<uint,T,string> OnItemAdded;
+	public Action<uint, string> OnItemRemoved;
 	public Action<string> OnClear;
 	private readonly List<(uint id, T item)> _data = new List<(uint,T)>();
 	private uint _nextID = 1;//We use 0 for "waiting for unique id".
@@ -15,12 +16,12 @@ public class ListDataStore<T> : IDataStore
 		OnItemAdded?.Invoke(id,item,client);
 		return id;
 	}
-
-	public void RemoveItem(int id)
+	
+	public void RemoveItem(uint id, string client)
 	{
 		var item = _data.Find(x => x.Item1 == id);
 		_data.Remove(item);
-		//update removal?
+		OnItemRemoved?.Invoke(id,client);
 	}
 
 	public void Clear(string client)

@@ -13,8 +13,11 @@ public class SocketClient : WebSocketController
 	{
 		_testDataStore = datastore;
 		_testDataStore.OnItemAdded += OnItemAddedFromOtherClient;
+		_testDataStore.OnItemRemoved += OnItemRemovedFromOtherClient;
 		_testDataStore.OnClear += OnClear;
 	}
+
+	
 
 	private async void OnClear(string client)
 	{
@@ -39,6 +42,19 @@ public class SocketClient : WebSocketController
 		packet[0] = (byte)MessageType.Add; //set message
 		BitConverter.GetBytes(itemID).CopyTo(packet, 1); //set id.
 		data.CopyTo(packet, 5); //copy the rest.
+		await Send(packet);
+	}
+
+	private async void OnItemRemovedFromOtherClient(uint itemID, string client)
+	{
+		if (client == ID)
+		{
+			return;
+		}
+
+		var packet = new byte[5];
+		packet[0] = (byte)MessageType.Remove; //set message
+		BitConverter.GetBytes(itemID).CopyTo(packet, 1); //set id.
 		await Send(packet);
 	}
 	
