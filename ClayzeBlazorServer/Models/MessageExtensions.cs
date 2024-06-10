@@ -94,6 +94,11 @@ public static class MessageExtensions
 				sb.Append(floatA.ToString("N2"));
 				offset += 4;
 				break;
+			case OperationName.SDF:
+				sb.Append("Message Size: ");
+				sb.Append(data.Length.ToString());
+				sb.Append(" bytes");
+				break;
 		}
 	}
 }

@@ -9,6 +9,8 @@
 <p>Connnection URL: <em>wss://clayzeserver.hdyar.com:443/test</em></p>
 <p>This is the current data held on the server at the "test" endpoint. It does not refresh automatically. Nothing is saved. All data is lost when the server crashes or restarts.</p>
 
+<button @onclick="OnClearButton">Clear</button>
+
 @if (dataStore == null)
 {
     <p>
@@ -47,6 +49,13 @@ else
 
     private void OnItemAdded(uint arg1, byte[] arg2, string arg3)
     {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnClearButton()
+    {
+        //all webpages can have the same ID, because they always update on any change.
+        dataStore.Clear("webpage");
     }
 
 }
