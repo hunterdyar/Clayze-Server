@@ -12,7 +12,8 @@ public class WebSocketController
 	{
 		_webSocket = webSocket;
 		ID = Guid.NewGuid().ToString();//ehhh
-		Buffer = new ArraySegment<byte>(new byte[1024 * 4]);
+		//the buffer needs to be large enough to hold the largest SDFs we can use.
+		Buffer = new ArraySegment<byte>(new byte[64*64*64*  64*4]);
 	}
 	public async Task Handle()
 	{
