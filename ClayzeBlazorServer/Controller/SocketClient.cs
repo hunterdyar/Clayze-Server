@@ -14,14 +14,13 @@ public class SocketClient : WebSocketController
 		_testDataStore = datastore;
 		_testDataStore.OnItemAdded += OnItemAddedFromOtherClient;
 		_testDataStore.OnItemRemoved += OnItemRemovedFromOtherClient;
+		_testDataStore.OnItemChanged += OnItemChangedFromOtherClient;
 		_testDataStore.OnClear += OnClear;
 	}
 
-	
-
 	private async void OnClear(string client)
 	{
-		if (client == ID)
+		if (client == ClientID)
 		{
 			return;
 		}
@@ -32,7 +31,7 @@ public class SocketClient : WebSocketController
 	private async void OnItemAddedFromOtherClient(uint itemID, byte[] data, string client)
 	{
 		//we added this! ignore!
-		if (client == ID)
+		if (client == ClientID)
 		{
 			return;
 		}
@@ -45,9 +44,23 @@ public class SocketClient : WebSocketController
 		await Send(packet);
 	}
 
+	private async void OnItemChangedFromOtherClient(uint itemID, byte[] data, string client)
+	{
+		//we added this! ignore!
+		if (client == ClientID)
+		{
+			return;
+		}
+		var packet = new byte[data.Length + 5];
+		packet[0] = (byte)MessageType.Change; //set message
+		BitConverter.GetBytes(itemID).CopyTo(packet, 1); //set id.
+		data.CopyTo(packet, 5); //copy the rest.
+		await Send(packet);
+	}
+
 	private async void OnItemRemovedFromOtherClient(uint itemID, string client)
 	{
-		if (client == ID)
+		if (client == ClientID)
 		{
 			return;
 		}
@@ -75,21 +88,32 @@ public class SocketClient : WebSocketController
 				//remove instruction byte and add.
 				var message = new byte[data.Length - 1];
 				Array.ConstrainedCopy(data, 1, message, 0, data.Length - 1);
-				var id = _testDataStore.AddItem(message, ID);
+				var id = _testDataStore.AddItem(message, ClientID);
 				var packet = new byte[5];
 				BitConverter.GetBytes(id).CopyTo(packet, 1);
 				packet[0] = (byte)MessageType.IDReply;
 				await Send(packet);
 				break;
+			case MessageType.Change:
+				//[change][id][newData]
+				var idbytes = new ArraySegment<byte>(data, 1, 4);
+				id = BitConverter.ToUInt32(idbytes);
+				message = new byte[data.Length - 5];
+				Array.ConstrainedCopy(data, 1, message, 0, data.Length - 5);
+				_testDataStore.ChangeItem(id,message, ClientID);
+				break;
 			case MessageType.Remove:
 				// var id = BitConverter.ToInt32([[]])
+				idbytes = new ArraySegment<byte>(data, 1, 4);
+				id = BitConverter.ToUInt32(idbytes);
+				_testDataStore.RemoveItem(id,ClientID);
 				break;
 			case MessageType.GetAll:
 				//asked for all data. reply with all data.
 				await SendAllData();
 				break;
 			case MessageType.Clear:
-				_testDataStore.Clear(ID);
+				_testDataStore.Clear(ClientID);
 				break;
 		}
 	}

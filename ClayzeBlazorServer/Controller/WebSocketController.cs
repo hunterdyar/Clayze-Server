@@ -6,12 +6,12 @@ namespace ClayzeBlazorServer;
 public class WebSocketController
 {
 	protected WebSocket _webSocket;
-	protected string ID;
+	protected string ClientID;
 	protected ArraySegment<byte> Buffer;
 	public WebSocketController(WebSocket webSocket)
 	{
 		_webSocket = webSocket;
-		ID = Guid.NewGuid().ToString();//ehhh
+		ClientID = Guid.NewGuid().ToString();//ehhh
 		//the buffer needs to be large enough to hold the largest SDFs we can use.
 		Buffer = new ArraySegment<byte>(new byte[64*64*64*  64*4]);
 	}
