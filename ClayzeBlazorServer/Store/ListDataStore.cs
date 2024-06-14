@@ -1,6 +1,8 @@
-﻿namespace ClayzeBlazorServer.Datashare;
+﻿using System.Collections;
+using System.Linq;
+namespace ClayzeBlazorServer.Datashare;
 
-public class ListDataStore<T> : IDataStore
+public class ListDataStore<T> : IDataStore where T : IList
 {
 	//Every item in the list gets a unique ID. It's not the index, it's independent of removal/operations.
 	public Action<uint,T,string> OnItemAdded;
@@ -23,6 +25,10 @@ public class ListDataStore<T> : IDataStore
 		var i = _data.FindIndex(x => x.Item1 == id);
 		if (i != -1)
 		{
+			if (_data[i].item.GetHashCode() == item.GetHashCode())
+			{
+				return;
+			}
 			//replace old with new value
 			_data[i] = (id,item);
 		}

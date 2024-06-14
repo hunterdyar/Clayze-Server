@@ -51,6 +51,7 @@ public class SocketClient : WebSocketController
 		{
 			return;
 		}
+		
 		var packet = new byte[data.Length + 5];
 		packet[0] = (byte)MessageType.Change; //set message
 		BitConverter.GetBytes(itemID).CopyTo(packet, 1); //set id.
@@ -99,7 +100,7 @@ public class SocketClient : WebSocketController
 				var idbytes = new ArraySegment<byte>(data, 1, 4);
 				id = BitConverter.ToUInt32(idbytes);
 				message = new byte[data.Length - 5];
-				Array.ConstrainedCopy(data, 1, message, 0, data.Length - 5);
+				Array.ConstrainedCopy(data, 5, message, 0, data.Length - 5);
 				_testDataStore.ChangeItem(id,message, ClientID);
 				break;
 			case MessageType.Remove:

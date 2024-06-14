@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
 	.AddInteractiveServerComponents();
-string[] stores = new[] { "test", "ws1" };
+string[] stores = new[] { "test", "ws1", "props","a","b","c","d" };
 var app = builder.Build();
 
 var webSocketOptions = new WebSocketOptions
