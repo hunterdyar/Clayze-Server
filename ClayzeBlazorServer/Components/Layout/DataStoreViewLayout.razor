@@ -1,0 +1,76 @@
+﻿@using ClayzeBlazorServer.Datashare
+@using ClayzeBlazorServer.Models
+@inject NavigationManager NavManager;
+<h1>Clayze Server</h1>
+
+<p>Connnection URL: <em id="connection">@ConnectionURL</em></p>
+<p>This is the current data held on the server at the "test" endpoint. It does not refresh automatically. Nothing is
+    saved. All data is lost when the server crashes or restarts.</p>
+
+<button @onclick="OnClearButton">Clear</button>
+
+@if (dataStore == null)
+{
+<p>
+    <em>Loading...</em>
+</p>
+}
+else
+{
+<table class="table">
+    <thead>
+    <tr>
+        <th>Item id</th>
+        <th>Message (utf8)</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var itemPair in dataStore.GetAllRawData())
+    {
+    <tr>
+        <td>
+            <button @onclick="@(e=>OnRemoveItem(@itemPair.Item1))">x</button>
+        </td>
+        <td>@itemPair.Item1</td>
+        <td>@itemPair.Item2.PrettyPrint()</td>
+    </tr>
+    }
+    </tbody>
+</table>
+}
+
+@code {
+    [Parameter]
+    public string StoreID { get; set; }
+    private string ConnectionURL;
+    private ListDataStore<byte[]> dataStore;
+
+    protected override async Task OnInitializedAsync()
+    {
+        DataStoreHub.TryGetDataStore(StoreID, out dataStore);
+        dataStore.OnItemAdded += OnItemAdded;
+        //set connection url
+        ConnectionURL = NavManager.BaseUri;
+        ConnectionURL = ConnectionURL.Replace("https", "wss");
+        ConnectionURL = ConnectionURL.Replace("http", "ws");
+        ConnectionURL += StoreID;
+    }
+    
+
+    private void OnItemAdded(uint arg1, byte[] arg2, string arg3)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnClearButton()
+    {
+        //all webpages can have the same ID, because they always update on any change.
+        dataStore.Clear("webpage");
+    }
+
+    private async Task OnRemoveItem(uint id)
+    {
+        //all webpages can have the same ID, because they always update on any change.
+        dataStore.RemoveItem(id,"webpage");
+    }
+}

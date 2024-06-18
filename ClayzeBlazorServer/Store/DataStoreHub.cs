@@ -3,6 +3,7 @@
 
 public static class DataStoreHub
 {
+	public static string[] AllStores => DataStores.Keys.ToArray();
 	public static Dictionary<string, IDataStore> DataStores = new Dictionary<string, IDataStore>();
 
 	public static bool TryGetDataStore<T>(string storeid, out T store)

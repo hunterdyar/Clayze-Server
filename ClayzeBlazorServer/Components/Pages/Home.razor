@@ -1,68 +1,27 @@
 ﻿@page "/"
 @using ClayzeBlazorServer.Datashare
 @using ClayzeBlazorServer.Models
+@using ClayzeBlazorServer.Components.Layout
 @attribute [StreamRendering]
 
 <PageTitle>Clayze Server Data</PageTitle>
-
 <h1>Clayze Server</h1>
-<p>Connnection URL: <em>wss://clayzeserver.hdyar.com:443/test</em></p>
-<p>This is the current data held on the server at the "test" endpoint. It does not refresh automatically. Nothing is saved. All data is lost when the server crashes or restarts.</p>
+<p>The Clayze server is a websocket server. It's only job is to keep a list syncronized between clients. It receives
+    items and then pushes them to everyone else.</p>
+<p>This webapp is a debug view of the current content. This webapp is conntained in the same project as the server. It
+    was made using <a href="https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor" target="_blank">Blazor</a>, and is hosted on Microsoft's Azure cloud <a href="https://azure.microsoft.com/en-us/products/app-service/web" target="_blank">web app</a> hosting.</p>
+<ul>
+    <li><a href="https://github.com/hunterdyar/Clayze-Server">GitHub</a> repo</li>
+    <li><a href="https://github.com/hunterdyar/Clayze">Clayze Package</a> (client)</li>
+    <li><a href="https://clayze.hyar.com">Clayze</a> project page</li>
+</ul>
 
-<button @onclick="OnClearButton">Clear</button>
+<hr>
 
-@if (dataStore == null)
-{
-    <p>
-        <em>Loading...</em>
-    </p>
-}
-else
-{
-    <table class="table">
-        <thead>
-        <tr>
-            <th>Item id</th>
-            <th>Message (utf8)</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (var itemPair in dataStore.GetAllRawData())
-        {
-            <tr>
-                <td><button @onclick="@(e=>OnRemoveItem(@itemPair.Item1))">x</button></td>
-                <td>@itemPair.Item1</td>
-                <td>@itemPair.Item2.PrettyPrint()</td>
-            </tr>
-        }
-        </tbody>
-    </table>
-}
-
-@code {
-    private ListDataStore<byte[]> dataStore;
-
-    protected override async Task OnInitializedAsync()
+<h2>Active Data Stores</h2>
+<ul>
+    @foreach (var item in DataStoreHub.AllStores)
     {
-        DataStoreHub.TryGetDataStore("test", out dataStore);
-        dataStore.OnItemAdded += OnItemAdded;
+        <li><a href="./store/@item">@item</a></li>
     }
-
-    private void OnItemAdded(uint arg1, byte[] arg2, string arg3)
-    {
-        InvokeAsync(StateHasChanged);
-    }
-
-    private async Task OnClearButton()
-    {
-        //all webpages can have the same ID, because they always update on any change.
-        dataStore.Clear("webpage");
-    }
-
-    private async Task OnRemoveItem(uint id)
-    {
-    //all webpages can have the same ID, because they always update on any change.
-        dataStore.RemoveItem(id,"webpage");
-    }
-
-}
+</ul>
