@@ -6,6 +6,7 @@ namespace ClayzeBlazorServer;
 
 public class SocketClient : WebSocketController
 {
+	private static readonly byte[] ConfirmChangePacket = new []{ (byte)MessageType.ChangeConfirm };
 	//this datastore needs to get initialized in program and a reference injected to here.
 	private ListDataStore<byte[]> _testDataStore;
 
@@ -102,6 +103,7 @@ public class SocketClient : WebSocketController
 				message = new byte[data.Length - 5];
 				Array.ConstrainedCopy(data, 5, message, 0, data.Length - 5);
 				_testDataStore.ChangeItem(id,message, ClientID);
+				await Send(ConfirmChangePacket);
 				break;
 			case MessageType.Remove:
 				// var id = BitConverter.ToInt32([[]])
