@@ -17,6 +17,7 @@ public class WebSocketController
 	}
 	public async Task Handle()
 	{
+		OnHandleStart();
 		//loop that keeps the conenction open
 		while (_webSocket.State == WebSocketState.Open)
 		{
@@ -32,6 +33,16 @@ public class WebSocketController
 				await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure,"client requested",CancellationToken.None);
 			}
 		}
+
+		OnHandleEnd();
+	}
+
+	protected virtual void OnHandleStart()
+	{
+	}
+
+	protected virtual void OnHandleEnd()
+	{
 	}
 
 	protected virtual async Task OnReceive(byte[] data)

@@ -28,8 +28,7 @@ foreach (string storeID in stores)
 		if (context.WebSockets.IsWebSocketRequest)
 		{
 			var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-			DataStoreHub.TryGetDataStore(storeID, out ListDataStore<byte[]> store);
-			SocketClient controller = new SocketClient(webSocket, store);
+			SocketClient controller = new SocketClient(webSocket, storeID);
 			await controller.Handle();
 
 		}

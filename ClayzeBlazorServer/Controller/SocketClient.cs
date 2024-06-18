@@ -8,15 +8,23 @@ public class SocketClient : WebSocketController
 {
 	private static readonly byte[] ConfirmChangePacket = new []{ (byte)MessageType.ChangeConfirm };
 	//this datastore needs to get initialized in program and a reference injected to here.
-	private ListDataStore<byte[]> _testDataStore;
-
-	public SocketClient(WebSocket socket, ListDataStore<byte[]> datastore) : base(socket)
+	private ListDataStore<byte[]> _dataStore;
+	private string storeID;
+	public SocketClient(WebSocket socket, string storeID) : base(socket)
 	{
-		_testDataStore = datastore;
-		_testDataStore.OnItemAdded += OnItemAddedFromOtherClient;
-		_testDataStore.OnItemRemoved += OnItemRemovedFromOtherClient;
-		_testDataStore.OnItemChanged += OnItemChangedFromOtherClient;
-		_testDataStore.OnClear += OnClear;
+		if (DataStoreHub.TryGetDataStore(storeID, out ListDataStore<byte[]> ds))
+		{
+			_dataStore = ds;
+			_dataStore.OnItemAdded += OnItemAddedFromOtherClient;
+			_dataStore.OnItemRemoved += OnItemRemovedFromOtherClient;
+			_dataStore.OnItemChanged += OnItemChangedFromOtherClient;
+			_dataStore.OnClear += OnClear;
+			this.storeID = storeID;
+		}
+		else
+		{
+			Console.Error.WriteLine($"Error, bad store id {storeID}");
+		}
 	}
 
 	private async void OnClear(string client)
@@ -90,7 +98,7 @@ public class SocketClient : WebSocketController
 				//remove instruction byte and add.
 				var message = new byte[data.Length - 1];
 				Array.ConstrainedCopy(data, 1, message, 0, data.Length - 1);
-				var id = _testDataStore.AddItem(message, ClientID);
+				var id = _dataStore.AddItem(message, ClientID);
 				var packet = new byte[5];
 				BitConverter.GetBytes(id).CopyTo(packet, 1);
 				packet[0] = (byte)MessageType.IDReply;
@@ -102,21 +110,21 @@ public class SocketClient : WebSocketController
 				id = BitConverter.ToUInt32(idbytes);
 				message = new byte[data.Length - 5];
 				Array.ConstrainedCopy(data, 5, message, 0, data.Length - 5);
-				_testDataStore.ChangeItem(id,message, ClientID);
+				_dataStore.ChangeItem(id,message, ClientID);
 				await Send(ConfirmChangePacket);
 				break;
 			case MessageType.Remove:
 				// var id = BitConverter.ToInt32([[]])
 				idbytes = new ArraySegment<byte>(data, 1, 4);
 				id = BitConverter.ToUInt32(idbytes);
-				_testDataStore.RemoveItem(id,ClientID);
+				_dataStore.RemoveItem(id,ClientID);
 				break;
 			case MessageType.GetAll:
 				//asked for all data. reply with all data.
 				await SendAllData();
 				break;
 			case MessageType.Clear:
-				_testDataStore.Clear(ClientID);
+				_dataStore.Clear(ClientID);
 				break;
 		}
 	}
@@ -124,7 +132,12 @@ public class SocketClient : WebSocketController
 
 	private async Task SendAllData()
 	{
-		var allDataSet = _testDataStore.GetAllRawData();
+		if (_dataStore == null)
+		{
+			Console.WriteLine("data store null? shit!");
+			return;
+		}
+		var allDataSet = _dataStore.GetAllRawData();
 		List<byte> allData = new List<byte>();
 		allData.Add((byte)MessageType.GetAll);
 		foreach (var item in allDataSet)
@@ -134,5 +147,17 @@ public class SocketClient : WebSocketController
 		}
 
 		await Send(allData.ToArray());
+	}
+
+	protected override void OnHandleStart()
+	{
+		DataStoreHub.ConnectionDelta(storeID,1);
+		base.OnHandleStart();
+	}
+
+	protected override void OnHandleEnd()
+	{
+		DataStoreHub.ConnectionDelta(storeID, -1);
+		base.OnHandleEnd();
 	}
 }
