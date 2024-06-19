@@ -1,5 +1,8 @@
 ﻿using System.Collections;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
+
 namespace ClayzeBlazorServer.Datashare;
 
 public class ListDataStore<T> : IDataStore where T : IList
@@ -8,6 +11,7 @@ public class ListDataStore<T> : IDataStore where T : IList
 	public Action<uint,T,string> OnItemAdded;
 	public Action<uint, string> OnItemRemoved;
 	public Action<uint, T, string> OnItemChanged;
+	public Action OnAllClientsUpdateAll;
 	public Action<string> OnClear;
 	private readonly List<(uint id, T item)> _data = new List<(uint,T)>();
 	private uint _nextID = 1;//We use 0 for "waiting for unique id".
@@ -51,10 +55,64 @@ public class ListDataStore<T> : IDataStore where T : IList
 		_data.Clear();
 		OnClear?.Invoke(client);
 	}
-	
-	public List<(uint,T)> GetAllRawData()
+
+	public List<(uint, T)> GetAllRawData()
 	{
 		return _data;
 	}
-	
+
+
+	public string Serialize()
+	{
+		var js = new JsonContainer();
+		js.store = new List<JsonPair>();
+		foreach (var tup in _data)
+		{
+			js.store.Add(new JsonPair(){id = tup.id,data = tup.item});
+		}
+		return JsonSerializer.Serialize<JsonContainer>(js);
+	}
+
+	public bool Deserialize(string data)
+	{
+		if (string.IsNullOrEmpty(data))
+		{
+			return false;
+		}
+		
+		var result = JsonSerializer.Deserialize<JsonContainer>(data);
+		if (result == null)
+		{
+			return false;
+		}
+
+		if (result.store == null)
+		{
+			return false;
+		}
+
+		if (_data.Count > 0)
+		{
+			Clear("server");
+		}
+		foreach (var pair in result.store)
+		{ 
+			_data.Add((pair.id, pair.data));
+		}
+		OnAllClientsUpdateAll?.Invoke();
+		return true;
+	}
+
+	[System.Serializable]
+	public class JsonContainer
+	{
+		public List<JsonPair>? store { get; set; }
+	}
+
+	[System.Serializable]
+	public class JsonPair
+	{
+		public uint id { get; set; }
+		public T data { get; set; }
+	}
 }

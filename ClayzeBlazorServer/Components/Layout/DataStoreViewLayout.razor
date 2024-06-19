@@ -1,13 +1,19 @@
-﻿@using ClayzeBlazorServer.Datashare
+﻿@using System.Text
+@using ClayzeBlazorServer.Datashare
 @using ClayzeBlazorServer.Models
 @inject NavigationManager NavManager;
+@inject IJSRuntime JS;
+
 <h1>Clayze Server</h1>
 
 <p>Connnection URL: <em id="connection">@ConnectionURL</em></p>
 <p>Active Connected Clients: @_activeConnections</p>
-<p>This is the current data held on the server at the "test" endpoint. It does not refresh automatically. Nothing is
-    saved. All data is lost when the server crashes or restarts.</p>
+<p>This is the current data held on the server at the "test" endpoint. It does not refresh automatically. All data is lost when the server crashes or restarts.</p>
 
+Download Current: <button @onclick="OnDownloadButton">Download</button><br />
+Set From JSON:
+<InputFile OnChange="OnLoadFile"/> 
+<hr />
 <button @onclick="OnClearButton">Clear</button>
 
 @if (dataStore == null)
@@ -39,6 +45,19 @@ else
     </tbody>
 </table>
 }
+<script>
+    window.downloadFileFromStream = async (fileName, contentStreamReference) => {
+      const arrayBuffer = await contentStreamReference.arrayBuffer();
+      const blob = new Blob([arrayBuffer]);
+      const url = URL.createObjectURL(blob);
+      const anchorElement = document.createElement('a');
+      anchorElement.href = url;
+      anchorElement.download = fileName ?? '';
+      anchorElement.click();
+      anchorElement.remove();
+      URL.revokeObjectURL(url);
+    }
+</script>
 
 @code {
     [Parameter]
@@ -46,7 +65,7 @@ else
     private string ConnectionURL;
     private ListDataStore<byte[]> dataStore;
     private int _activeConnections;
-    
+
     protected override async Task OnInitializedAsync()
     {
         DataStoreHub.TryGetDataStore(StoreID, out dataStore);
@@ -84,15 +103,34 @@ else
         InvokeAsync(StateHasChanged);
     }
 
+    private async Task OnRemoveItem(uint id)
+    {
+        //all webpages can have the same ID, because they always update on any change.
+        dataStore.RemoveItem(id, "webpage");
+    }
+    
+    private async Task OnDownloadButton()
+    {
+        //all webpages can have the same ID, because they always update on any change.
+        var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(dataStore.Serialize()));
+        string filename = StoreID + ".json";//yyyymmdd-hhmmss
+        using var streamRef = new DotNetStreamReference(stream: stream);
+        await JS.InvokeVoidAsync("downloadFileFromStream", filename, streamRef);
+    }
+
+    private async Task OnLoadFile(InputFileChangeEventArgs e)
+    {
+        var stream = e.File.OpenReadStream();
+        var buffer = new byte[stream.Length];
+        var result = await stream.ReadAsync(buffer);
+        var x = dataStore.Deserialize(Encoding.UTF8.GetString(buffer));
+    }
+    
     private async Task OnClearButton()
     {
         //all webpages can have the same ID, because they always update on any change.
         dataStore.Clear("webpage");
     }
 
-    private async Task OnRemoveItem(uint id)
-    {
-        //all webpages can have the same ID, because they always update on any change.
-        dataStore.RemoveItem(id,"webpage");
-    }
+    
 }

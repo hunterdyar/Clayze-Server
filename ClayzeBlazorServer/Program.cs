@@ -2,6 +2,7 @@ using System.Net;
 using ClayzeBlazorServer;
 using ClayzeBlazorServer.Components;
 using ClayzeBlazorServer.Datashare;
+using Microsoft.JSInterop;
 
 var builder = WebApplication.CreateBuilder(args);
 

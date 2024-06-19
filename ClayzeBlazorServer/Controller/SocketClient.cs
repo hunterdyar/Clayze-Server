@@ -18,6 +18,7 @@ public class SocketClient : WebSocketController
 			_dataStore.OnItemAdded += OnItemAddedFromOtherClient;
 			_dataStore.OnItemRemoved += OnItemRemovedFromOtherClient;
 			_dataStore.OnItemChanged += OnItemChangedFromOtherClient;
+			_dataStore.OnAllClientsUpdateAll += OnAllClientsUpdateAll;
 			_dataStore.OnClear += OnClear;
 			this.storeID = storeID;
 		}
@@ -25,6 +26,11 @@ public class SocketClient : WebSocketController
 		{
 			Console.Error.WriteLine($"Error, bad store id {storeID}");
 		}
+	}
+
+	private async void OnAllClientsUpdateAll()
+	{
+		await SendAllData();
 	}
 
 	private async void OnClear(string client)
