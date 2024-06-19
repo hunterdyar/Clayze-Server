@@ -9,5 +9,6 @@ public enum MessageType
 	IDReply = 4,
 	Clear = 5,
 	Change = 6,
-	ChangeConfirm = 7
+	ChangeConfirm = 7,
+	Event = 8,
 }

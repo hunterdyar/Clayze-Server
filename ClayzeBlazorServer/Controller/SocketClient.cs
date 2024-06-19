@@ -6,12 +6,14 @@ namespace ClayzeBlazorServer;
 
 public class SocketClient : WebSocketController
 {
+	private static Action<byte[], string> OnEvent;
 	private static readonly byte[] ConfirmChangePacket = new []{ (byte)MessageType.ChangeConfirm };
 	//this datastore needs to get initialized in program and a reference injected to here.
 	private ListDataStore<byte[]> _dataStore;
 	private string storeID;
 	public SocketClient(WebSocket socket, string storeID) : base(socket)
 	{
+		OnEvent+= OnEventFromAnyClient;
 		if (DataStoreHub.TryGetDataStore(storeID, out ListDataStore<byte[]> ds))
 		{
 			_dataStore = ds;
@@ -25,6 +27,15 @@ public class SocketClient : WebSocketController
 		else
 		{
 			Console.Error.WriteLine($"Error, bad store id {storeID}");
+		}
+	}
+
+	private async void OnEventFromAnyClient(byte[] data, string client)
+	{
+		if (client != ClientID)
+		{
+			//note: byte 0 is the 'event' message type. We assume this and pass along.
+			await Send(data);
 		}
 	}
 
@@ -131,6 +142,9 @@ public class SocketClient : WebSocketController
 				break;
 			case MessageType.Clear:
 				_dataStore.Clear(ClientID);
+				break;
+			case MessageType.Event:
+				OnEvent?.Invoke(data,ClientID);
 				break;
 		}
 	}
