@@ -40,4 +40,16 @@ public static class DataStoreHub
 		}
 		OnConnectionChanged?.Invoke(storeId,Connections[storeId]);
 	}
+
+	public static int GetConnectionCount(string item)
+	{
+		if (Connections.TryGetValue(item, out var val))
+		{
+			return val;
+		}
+		else
+		{
+			return 0;
+		}
+	}
 }

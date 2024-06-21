@@ -22,6 +22,19 @@
 <ul>
     @foreach (var item in DataStoreHub.AllStores)
     {
-        <li><a href="./store/@item">@item</a></li>
+        <li>@DataStoreHub.GetConnectionCount(item) | <a href="./store/@item">@item</a> </li>
     }
 </ul>
+
+@code
+{
+    protected override void OnInitialized()
+    {
+        DataStoreHub.OnConnectionChanged += OnConnectionChanged;
+    }
+
+    private void OnConnectionChanged(string arg1, int arg2)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+}
