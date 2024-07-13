@@ -8,6 +8,8 @@ public class SocketClient : WebSocketController
 {
 	private static Action<byte[], string> OnEvent;
 	private static readonly byte[] ConfirmChangePacket = new []{ (byte)MessageType.ChangeConfirm };
+	private static readonly byte[] InkConfirmPacket = new[] { (byte)MessageType.InkAddConfirm };
+
 	//this datastore needs to get initialized in program and a reference injected to here.
 	private ListDataStore<byte[]> _dataStore;
 	private string storeID;
@@ -146,6 +148,18 @@ public class SocketClient : WebSocketController
 			case MessageType.Event:
 				OnEvent?.Invoke(data,ClientID);
 				break;
+			case MessageType.InkAdd:
+				//
+				await Send(InkConfirmPacket);
+				OnEvent?.Invoke(data,ClientID);
+				break;
+			case MessageType.InkEnd:
+			case MessageType.InkStart:
+			case MessageType.InkNewCanvas:
+				//just broadcast ink events, we don't store them (for now)
+				//future would be great to see the canvases as like svg's on the webpage. neat!
+				OnEvent?.Invoke(data,ClientID);
+				return;
 		}
 	}
 

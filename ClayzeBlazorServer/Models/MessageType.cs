@@ -11,4 +11,10 @@ public enum MessageType
 	Change = 6,
 	ChangeConfirm = 7,
 	Event = 8,
+	InkStart = 16,
+	InkAdd = 17,
+	InkEnd = 18,
+	InkNewCanvas = 19,
+	InkAddConfirm = 20,
+
 }
