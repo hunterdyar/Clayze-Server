@@ -160,6 +160,14 @@ public class SocketClient : WebSocketController
 				//future would be great to see the canvases as like svg's on the webpage. neat!
 				OnEvent?.Invoke(data,ClientID);
 				return;
+			case MessageType.TakeOwnership:
+				//this client is taking ownership. we don't track clients, so we just broadcast for all other clients to release ownership of this ID.
+				data[0] = (byte)MessageType.ReleaseOwnership;
+				OnEvent?.Invoke(data,ClientID);
+				return;
+			case MessageType.ReleaseOwnership:
+				//we do nothing.
+				return;
 		}
 	}
 
